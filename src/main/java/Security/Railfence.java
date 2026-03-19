@@ -3,7 +3,14 @@ package Security;
 public class Railfence {
     public int analyse(String plainText, String cipherText) {
         // Students should complete this part
-        return 0;
+        for (int key = 2; key<plainText.length();key++){
+          String encryptedTxt = encrypt(plainText,key);
+
+          if (encryptedTxt.equalsIgnoreCase(cipherText.replace(" ",""))){
+              return key;
+          }
+        }
+        return -1;
     }
 
     public String decrypt(String cipherText, int key) {
