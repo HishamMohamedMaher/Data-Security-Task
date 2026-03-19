@@ -5,6 +5,48 @@ public class ColumnarCipher {
 
     public List<Integer> analyse(String plainText, String cipherText) {
         // TODO: Analyze the plainText and cipherText to determine the key(s)
+        plainText=plainText.toLowerCase();
+        cipherText=cipherText.toLowerCase();
+
+        for (int keySize =2; keySize<=10;keySize++) {
+            if (cipherText.length() % keySize != 0)
+                continue;
+
+            int rows = cipherText.length() / keySize;
+
+            StringBuilder padding = new StringBuilder(plainText);
+            while (padding.length() < cipherText.length()) {
+                padding.append('x');
+            }
+
+            String[] OriginalCols = new String[keySize];
+            for (int c = 0; c < keySize; c++) {
+                StringBuilder colData = new StringBuilder();
+                for (int r = 0; r < rows; r++) {
+                    colData.append(padding.charAt(r * keySize + c));
+                }
+                OriginalCols[c] = colData.toString();
+            }
+
+            String[] cipherCols = new String[keySize];
+            for (int i = 0; i < keySize; i++) {
+                cipherCols[i] = cipherText.substring(i * rows, (i + 1) * rows);
+            }
+
+            List<Integer> key = new ArrayList<>();
+            for (int i = 0; i < keySize; i++) {
+                for (int j = 0; j < keySize; j++) {
+                    if (OriginalCols[i].equals(cipherCols[j])) {
+                        key.add(j + 1); // جافا بتبدأ من 0 والدكتور عايز الكي يبدأ من 1
+                        break;
+                    }
+                }
+            }
+
+            if (key.size() == keySize) {
+                return key;
+            }
+        }
 
         return new ArrayList<>(); // Placeholder return
     }
