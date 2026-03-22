@@ -3,7 +3,7 @@ import java.util.*;
 
 public class ColumnarCipher {
 
-    public List<Integer> analyse(String plainText, String cipherText) {
+   public List<Integer> analyse(String plainText, String cipherText) {
         // TODO: Analyze the plainText and cipherText to determine the key(s)
         plainText=plainText.toLowerCase();
         cipherText=cipherText.toLowerCase();
@@ -37,7 +37,7 @@ public class ColumnarCipher {
             for (int i = 0; i < keySize; i++) {
                 for (int j = 0; j < keySize; j++) {
                     if (OriginalCols[i].equals(cipherCols[j])) {
-                        key.add(j + 1); // جافا بتبدأ من 0 والدكتور عايز الكي يبدأ من 1
+                        key.add(j + 1);
                         break;
                     }
                 }
@@ -48,7 +48,7 @@ public class ColumnarCipher {
             }
         }
 
-        return new ArrayList<>(); // Placeholder return
+        return new ArrayList<>();
     }
 
     public String decrypt(String cipherText, List<Integer> key) {
