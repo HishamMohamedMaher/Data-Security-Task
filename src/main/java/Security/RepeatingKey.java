@@ -39,7 +39,6 @@ public class RepeatingKey {
         for (int i = 0; i < cipherLen; i++) {
             int c = cipherText.charAt(i) - 'a';
             int k = key.charAt(i % key.length()) - 'a';
-            // Reverse: p = (c - k + 26) % 26
             plainText.append((char) (((c - k + 26) % 26) + 'a'));
         }
 
