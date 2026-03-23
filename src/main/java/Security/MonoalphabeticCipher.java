@@ -99,6 +99,40 @@ public class MonoalphabeticCipher {
         /// Z	0.09
     public String analyseUsingCharFrequency(String cipher) {
         // Students should complete this part
-        return null;
+
+        cipher = cipher.toLowerCase();
+        int[] counts = new int[26];
+
+        for (char c : cipher.toCharArray()) {
+            if (c >= 'a' && c <= 'z') {
+                counts[c - 'a']++;
+            }
+        }
+
+        List<Character> letters = new ArrayList<>();
+        for (char c = 'a'; c <= 'z'; c++) {
+            letters.add(c);
+        }
+
+        letters.sort((a, b) -> counts[b - 'a'] - counts[a - 'a']);
+
+        String english = "etaoinsrhldcumfpgwybvkxjqz";
+        char[] map = new char[26];
+
+        for (int i = 0; i < 26; i++) {
+            map[letters.get(i) - 'a'] = english.charAt(i);
+        }
+
+        StringBuilder result = new StringBuilder();
+        for (char c : cipher.toCharArray()) {
+            if (c >= 'a' && c <= 'z') {
+                result.append(map[c - 'a']);
+            } else {
+                result.append(c);
+            }
+        }
+
+        return result.toString();
+
     }
 }

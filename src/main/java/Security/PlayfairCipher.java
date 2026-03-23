@@ -92,6 +92,52 @@ public class PlayfairCipher {
     // TODO: Implement this method to decrypt the ciphertext back to plaintext
     public String decrypt(String text) {
         // Students should complete this part
-        return null;
+
+        if (text == null || text.isEmpty()) {
+            return "";
+        }
+
+        text = text.toUpperCase().replaceAll("[^A-Z]", "").replace("J", "I");
+
+        if (text.length() % 2 != 0) {
+            text += "X";
+        }
+
+        StringBuilder result = new StringBuilder();
+
+        for (int i = 0; i < text.length(); i += 2) {
+            int[] a = findPosition(text.charAt(i));
+            int[] b = findPosition(text.charAt(i + 1));
+
+            if (a == null || b == null) continue;
+
+            if (a[0] == b[0]) {
+                result.append(keyMatrix[a[0]][(a[1] + 4) % 5]);
+                result.append(keyMatrix[b[0]][(b[1] + 4) % 5]);
+            } else if (a[1] == b[1]) {
+                result.append(keyMatrix[(a[0] + 4) % 5][a[1]]);
+                result.append(keyMatrix[(b[0] + 4) % 5][b[1]]);
+            } else {
+                result.append(keyMatrix[a[0]][b[1]]);
+                result.append(keyMatrix[b[0]][a[1]]);
+            }
+        }
+
+        StringBuilder clean = new StringBuilder();
+
+        for (int i = 0; i < result.length(); i++) {
+            char c = result.charAt(i);
+
+            if (c == 'X' && i > 0 && i < result.length() - 1
+                    && result.charAt(i - 1) == result.charAt(i + 1)) {
+                continue;
+            }
+            if (c == 'X' && i == result.length() - 1) {
+                continue;
+            }
+            clean.append(c);
+        }
+
+        return clean.toString();
     }
 }

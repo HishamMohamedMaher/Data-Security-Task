@@ -19,6 +19,7 @@ public class PlayfairCipherTest {
     @Test
     void testDifferentKey() {
         PlayfairCipher cipher = new PlayfairCipher("SECRET");
-        assertNotEquals("HELLOWORLD", cipher.decrypt("GATLMZCLRQX"));
+
+        assertEquals("FGRMGURKYL", cipher.decrypt("GATLMZCLRQ"));
     }
 }
