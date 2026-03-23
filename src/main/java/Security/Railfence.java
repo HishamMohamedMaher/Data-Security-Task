@@ -17,11 +17,9 @@ public class Railfence {
         cipherText = cipherText.replace(" ", "").toLowerCase();
         int colNumbers = (int) Math.ceil((double) cipherText.length() / key);
 
-        // Java 2D array: matrix[rows][columns]
         char[][] matrix = new char[key][colNumbers];
 
         int pos = 0;
-        // Fill the matrix row by row
         for (int r = 0; r < key && pos < cipherText.length(); r++) {
             for (int c = 0; c < colNumbers && pos < cipherText.length(); c++) {
                 matrix[r][c] = cipherText.charAt(pos++);
@@ -29,10 +27,8 @@ public class Railfence {
         }
 
         StringBuilder plainText = new StringBuilder();
-        // Read the matrix column by column
         for (int c = 0; c < colNumbers; c++) {
             for (int r = 0; r < key; r++) {
-                // Java char arrays initialize to '\0' (null character)
                 if (matrix[r][c] != '\0') {
                     plainText.append(matrix[r][c]);
                 }
@@ -48,7 +44,6 @@ public class Railfence {
         char[][] matrix = new char[key][colNumbers];
 
         int pos = 0;
-        // Fill the matrix column by column
         for (int c = 0; c < colNumbers && pos < plainText.length(); c++) {
             for (int r = 0; r < key && pos < plainText.length(); r++) {
                 matrix[r][c] = plainText.charAt(pos++);
@@ -56,7 +51,6 @@ public class Railfence {
         }
 
         StringBuilder cipherText = new StringBuilder();
-        // Read the matrix row by row
         for (int r = 0; r < key; r++) {
             for (int c = 0; c < colNumbers; c++) {
                 if (matrix[r][c] != '\0') {
