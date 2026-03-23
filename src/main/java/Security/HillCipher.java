@@ -138,105 +138,46 @@ public class HillCipher {
         }
         return cipherText;
     }
-// ---------------------------------------------------------------------------------
-public List<Integer> decrypt(List<Integer> CiphText,List<Integer> k_ey) {
-    chkInpts(CiphText,k_ey);
-    int NN = get_n_sizeAndCheck(CiphText, k_ey); List<Integer> inv_k = invertMatrix(k_ey, NN);
-    List<Integer> rESULT = dec_blks(CiphText,inv_k, NN);
-    return rESULT;
-}
 
-    private void chkInpts(List<Integer> ctxt, List<Integer> ky) {
-        boolean mssng1 = ctxt == null;boolean mssng2 = ky == null;
-        if (mssng1||mssng2)
-        { throw new InvalidAnalysisException(); }
+    public List<Integer> decrypt(List<Integer> cipherText, List<Integer> key) {
+        int blockSize = findMatrixSize(key.size());
+        List<Integer> invKey = invertMatrix(key, blockSize);
+        List<Integer> plainText = new ArrayList<>();
+
+        for (int i = 0; i < cipherText.size(); i += blockSize) {
+            for (int row = 0; row < blockSize; row++) {
+                int sum = 0;
+                for (int col = 0; col < blockSize; col++)
+                    sum += invKey.get(row * blockSize + col) * cipherText.get(i + col);
+                plainText.add(mod26(sum));
+            }
+        }
+        return plainText;
     }
 
-    private int get_n_sizeAndCheck(List<Integer> c_t, List<Integer> k_y) {
-        int xX = findMatrixSize(k_y.size());
-        boolean isok = xX==2 || xX==3; boolean vLen = c_t.size()%xX==0;
-        if(!isok||!vLen) {
-            throw new InvalidAnalysisException();}
-        return xX;
-    }
+    public List<Integer> analyse3By3Key(List<Integer> plainText, List<Integer> cipherText) {
+        int blockCount = plainText.size() / 3;
 
-    private List<Integer> dec_blks(List<Integer> CT, List<Integer> IK, int nnn) {
-        List<Integer> pt_list = new ArrayList<>();
-        for(int i=0;i<CT.size();i+=nnn)
-        {dec1Blk(CT,IK,pt_list,i,nnn);}
-        return pt_list;
-    }
+        for (int i = 0; i <= blockCount - 3; i++) {
+            for (int j = i + 1; j <= blockCount - 2; j++) {
+                for (int k = j + 1; k <= blockCount - 1; k++) {
+                    List<Integer> plainMat = new ArrayList<>();
+                    List<Integer> cipherMat = new ArrayList<>();
 
-    private void dec1Blk(List<Integer> ct,List<Integer> ik,
-                         List<Integer> p_t, int b_strt, int n_val) {
-        List<Integer> tempVals=new ArrayList<>();
-        for (int r=0;r<n_val;r++) {
-            tempVals.add(calc_val(ct, ik, b_strt, r, n_val));
-        }p_t.addAll(tempVals);
-    }
+                    for (int row = 0; row < 3; row++) {
+                        for (int col : new int[]{i, j, k}) {
+                            plainMat.add(plainText.get(col * 3 + row));
+                            cipherMat.add(cipherText.get(col * 3 + row));
+                        }
+                    }
 
-    private int calc_val(List<Integer> Ctxt, List<Integer> i_k,
-                         int strt, int R, int N) {
-        int sm=0;int cl=0;
-        while(cl<N) {sm+=i_k.get(R*N+cl)*Ctxt.get(strt+cl);cl++;}
-        return mod26(sm);
-    }
-//---------------------------------------------------------
-
-    public List<Integer> analyse3By3Key(List<Integer> p_txt,List<Integer> c_txt) {
-        check_Ana_in(p_txt, c_txt);
-        int blx=calcBlkC(p_txt);
-        List<Integer> k=fnd33(p_txt,c_txt,blx);
-        return k;
-    }
-
-    private void check_Ana_in(List<Integer> pt,List<Integer> ct){
-        boolean nUll = pt==null||ct==null;
-        boolean diffSz = !nUll&&pt.size()!=ct.size();
-        boolean shrt = !nUll&&pt.size()<9; boolean bdBlk = !nUll&&pt.size()%3!=0;
-        if (nUll||diffSz||shrt||bdBlk) {throw new InvalidAnalysisException();}
-    }
-
-    private int calcBlkC(List<Integer> p) {return p.size()/3;}
-
-    private List<Integer> fnd33(List<Integer> p,List<Integer> c,int bc) {
-        for(int f=0;f<=bc-3;f++) {
-            for(int s=f+1;s<=bc-2;s++) {
-                for(int t=s+1;t<=bc-1;t++) {
-                    List<Integer> res = try_combos(p,c,f,s,t);
-                    if(res!=null) {return res;}
+                    List<Integer> invPlain = invertMatrix(plainMat, 3);
+                    List<Integer> candKey = multiplyMatricesMod26(cipherMat, invPlain, 3);
+                    if (encrypt(plainText, candKey).equals(cipherText))
+                        return candKey;
                 }
             }
         }
-        throw new InvalidAnalysisException();
-    }
-
-    private List<Integer> try_combos(List<Integer> PT,List<Integer> CT,
-                                     int i1,int i2,int i3) {
-        List<Integer> p_mat=new ArrayList<>();List<Integer> c_mat=new ArrayList<>();
-        bld_Mats(PT,CT,p_mat,c_mat,i1,i2,i3);
-        List<Integer> k_res=genV_key(PT,CT,p_mat,c_mat);
-        return k_res;
-    }
-
-    private void bld_Mats(List<Integer> pp,List<Integer> cc,
-                          List<Integer> pm,List<Integer> cm,
-                          int x,int y,int z) {
-        int[] arr={x,y,z};
-        for(int rr=0;rr<3;rr++) {for(int cc2=0;cc2<3;cc2++){
-            int chz=arr[cc2];int idx=chz*3+rr;
-            pm.add(pp.get(idx));cm.add(cc.get(idx));
-        }}
-    }
-
-    private List<Integer> genV_key(List<Integer> p,List<Integer> c,
-                                   List<Integer> pM,List<Integer> cM) {
-        try {
-            List<Integer> invP=invertMatrix(pM, 3);
-            List<Integer> testK=multiplyMatricesMod26(cM, invP, 3);
-            if (!encrypt(p,testK).equals(c)){
-                return null;}
-            return testK;
-        } catch(InvalidAnalysisException ignrd) {return null;}
+        return null;
     }
 }

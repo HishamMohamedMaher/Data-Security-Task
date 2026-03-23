@@ -11,12 +11,10 @@ public class RepeatingKey {
         for (int i = 0; i < len; i++) {
             int p = plainText.charAt(i) - 'a';
             int c = cipherText.charAt(i) - 'a';
-            // Reverse: c = (p + k) % 26 → k = (c - p + 26) % 26
             int k = (c - p + 26) % 26;
             key.append((char) (k + 'a'));
         }
 
-        // The key is the repeating pattern — find the shortest repeating unit
         String fullKey = key.toString();
         for (int keyLen = 1; keyLen <= fullKey.length(); keyLen++) {
             String candidate = fullKey.substring(0, keyLen);
