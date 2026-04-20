@@ -81,7 +81,25 @@ public class DES {
 
     public String decrypt(String cipherTextHex, String keyHex) {
         // Students should complete this part
-        return null;
+
+        String cipherBin = hexToBinary(cipherTextHex);
+        String keyBin = hexToBinary(keyHex);
+
+        String permuted = permute(cipherBin, IP);
+        String L = permuted.substring(0, 32);
+        String R = permuted.substring(32);
+
+        String[] subkeys = generateSubKeys(keyBin);
+
+        for (int i = 15; i >= 0; i--) {
+            String temp = R;
+            R = xor(L, feistel(R, subkeys[i]));
+            L = temp;
+        }
+
+        String combined = R + L;
+        String plainBin = permute(combined, FP);
+        return binaryToHex(plainBin);
     }
 
     private String xor(String a, String b) {
