@@ -1,0 +1,255 @@
+name: Build APK
+on:
+  push:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.7
+      - name: Generate project
+        run: |
+          mkdir -p app/src/main/java/com/example/myapplication app/src/main/res/layout app/src/main/res/values
+          cat > settings.gradle.kts <<'EOF'
+          pluginManagement {
+              repositories { google(); mavenCentral(); gradlePluginPortal() }
+          }
+          dependencyResolutionManagement {
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              repositories { google(); mavenCentral() }
+          }
+          rootProject.name = "TaxCalculator"
+          include(":app")
+          EOF
+          cat > build.gradle.kts <<'EOF'
+          plugins {
+              id("com.android.application") version "8.5.2" apply false
+              id("org.jetbrains.kotlin.android") version "1.9.24" apply false
+          }
+          EOF
+          printf 'org.gradle.jvmargs=-Xmx2g\nandroid.useAndroidX=true\n' > gradle.properties
+          cat > app/build.gradle.kts <<'EOF'
+          plugins {
+              id("com.android.application")
+              id("org.jetbrains.kotlin.android")
+          }
+          android {
+              namespace = "com.example.myapplication"
+              compileSdk = 34
+              defaultConfig {
+                  applicationId = "com.example.myapplication"
+                  minSdk = 24
+                  targetSdk = 34
+                  versionCode = 1
+                  versionName = "1.0"
+              }
+              compileOptions {
+                  sourceCompatibility = JavaVersion.VERSION_17
+                  targetCompatibility = JavaVersion.VERSION_17
+              }
+              kotlinOptions { jvmTarget = "17" }
+          }
+          dependencies {
+              implementation("androidx.core:core-ktx:1.13.1")
+              implementation("androidx.appcompat:appcompat:1.7.0")
+          }
+          EOF
+          cat > app/src/main/AndroidManifest.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+              <application
+                  android:label="@string/app_name"
+                  android:supportsRtl="true"
+                  android:theme="@style/Theme.App">
+                  <activity android:name=".MainActivity" android:exported="true">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+                  </activity>
+              </application>
+          </manifest>
+          EOF
+          cat > app/src/main/res/values/themes.xml <<'EOF'
+          <resources>
+              <style name="Theme.App" parent="Theme.AppCompat.Light.NoActionBar" />
+          </resources>
+          EOF
+          cat > app/src/main/res/values/strings.xml <<'EOF'
+          <resources>
+              <string name="app_name">Tax Calculator</string>
+              <string name="title">Tax Calculator App</string>
+              <string name="hint_amount">Enter amount</string>
+              <string name="tax_default">Tax: 10%</string>
+              <string name="btn_calc">Calculate Tax</string>
+              <string name="result_default">Result will appear here</string>
+              <string name="student_name">هشام محمد ماهر</string>
+              <string name="student_id">2023170688</string>
+          </resources>
+          EOF
+          cat > app/src/main/res/layout/activity_main.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+              android:id="@+id/main"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical"
+              android:gravity="center"
+              android:padding="24dp">
+              <TextView
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:text="@string/title"
+                  android:textSize="22sp"
+                  android:textStyle="bold"
+                  android:layout_marginBottom="24dp" />
+              <EditText
+                  android:id="@+id/txt_amount"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:hint="@string/hint_amount"
+                  android:inputType="numberDecimal"
+                  android:layout_marginBottom="16dp" />
+              <TextView
+                  android:id="@+id/txt_taxLabel"
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:text="@string/tax_default"
+                  android:textSize="16sp" />
+              <SeekBar
+                  android:id="@+id/taxSeekBar"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:max="50"
+                  android:progress="10"
+                  android:layout_marginBottom="16dp" />
+              <Button
+                  android:id="@+id/btn_calc"
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:text="@string/btn_calc"
+                  android:layout_marginBottom="20dp" />
+              <TextView
+                  android:id="@+id/txt_result"
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:text="@string/result_default"
+                  android:textSize="18sp"
+                  android:textStyle="bold"
+                  android:gravity="center" />
+          </androidx.appcompat.widget.LinearLayoutCompat>
+          EOF
+          cat > app/src/main/res/layout/dialog_student_info.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:orientation="vertical"
+              android:padding="20dp">
+              <TextView
+                  android:id="@+id/btn_close"
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:layout_gravity="end"
+                  android:padding="8dp"
+                  android:text="✕"
+                  android:textSize="22sp"
+                  android:textStyle="bold" />
+              <TextView
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:gravity="center"
+                  android:text="@string/student_name"
+                  android:textSize="22sp"
+                  android:textStyle="bold"
+                  android:layout_marginTop="8dp" />
+              <TextView
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:gravity="center"
+                  android:text="@string/student_id"
+                  android:textSize="18sp"
+                  android:layout_marginTop="8dp"
+                  android:layout_marginBottom="16dp" />
+          </LinearLayout>
+          EOF
+          cat > app/src/main/java/com/example/myapplication/MainActivity.kt <<'EOF'
+          package com.example.myapplication
+
+          import android.app.AlertDialog
+          import android.os.Bundle
+          import android.view.LayoutInflater
+          import android.widget.Button
+          import android.widget.EditText
+          import android.widget.SeekBar
+          import android.widget.TextView
+          import android.widget.Toast
+          import androidx.activity.enableEdgeToEdge
+          import androidx.appcompat.app.AppCompatActivity
+          import androidx.core.view.ViewCompat
+          import androidx.core.view.WindowInsetsCompat
+
+          class MainActivity : AppCompatActivity() {
+              private var taxPercent = 10
+
+              override fun onCreate(savedInstanceState: Bundle?) {
+                  super.onCreate(savedInstanceState)
+                  enableEdgeToEdge()
+                  setContentView(R.layout.activity_main)
+                  ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+                      val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+                      v.setPadding(bars.left, bars.top, bars.right, bars.bottom)
+                      insets
+                  }
+
+                  val amountInput = findViewById<EditText>(R.id.txt_amount)
+                  val taxLabel = findViewById<TextView>(R.id.txt_taxLabel)
+                  val taxSeekBar = findViewById<SeekBar>(R.id.taxSeekBar)
+                  val calcBtn = findViewById<Button>(R.id.btn_calc)
+                  val resultText = findViewById<TextView>(R.id.txt_result)
+
+                  taxSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                      override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                          taxPercent = progress
+                          taxLabel.text = "Tax: $progress%"
+                      }
+                      override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+                      override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+                  })
+
+                  calcBtn.setOnClickListener {
+                      val amount = amountInput.text.toString().trim().toDoubleOrNull()
+                      if (amount == null) {
+                          Toast.makeText(this, "Invalid input. Enter a valid amount", Toast.LENGTH_SHORT).show()
+                      } else {
+                          val tax = amount * taxPercent / 100
+                          val total = amount + tax
+                          resultText.text = "Tax: $tax\nTotal: $total"
+                      }
+                  }
+
+                  showStudentDialog()
+              }
+
+              private fun showStudentDialog() {
+                  val view = LayoutInflater.from(this).inflate(R.layout.dialog_student_info, null)
+                  val dialog = AlertDialog.Builder(this).setView(view).setCancelable(false).create()
+                  view.findViewById<TextView>(R.id.btn_close).setOnClickListener { dialog.dismiss() }
+                  dialog.show()
+              }
+          }
+          EOF
+      - name: Build
+        run: gradle assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-debug
+          path: app/build/outputs/apk/debug/app-debug.apk
